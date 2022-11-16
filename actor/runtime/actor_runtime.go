@@ -104,3 +104,11 @@ func (r *ActorRunTime) InvokeTimer(actorTypeName, actorID, timerName string, par
 	mng := targetManager.(manager.ActorManager)
 	return mng.InvokeTimer(actorID, timerName, params)
 }
+
+func (r *ActorRunTime) InvokeActors(actorType, methodName string, request []byte) actorErr.ActorErr {
+	mng, ok := r.actorManagers.Load(actorType)
+	if !ok {
+		return actorErr.ErrActorTypeNotFound
+	}
+	return mng.(manager.ActorManager).InvokeActors(methodName, request)
+}

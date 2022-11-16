@@ -36,6 +36,7 @@ type ActorManager interface {
 	DeactivateActor(actorID string) actorErr.ActorErr
 	InvokeReminder(actorID, reminderName string, params []byte) actorErr.ActorErr
 	InvokeTimer(actorID, timerName string, params []byte) actorErr.ActorErr
+	InvokeActors(methodName string, request []byte) actorErr.ActorErr
 }
 
 // DefaultActorManager is to manage one type of actor.
@@ -170,6 +171,24 @@ func (m *DefaultActorManager) InvokeTimer(actorID, timerName string, params []by
 	}
 	_, aerr = actorContainer.Invoke(timerParams.CallBack, timerParams.Data)
 	return aerr
+}
+
+func (m *DefaultActorManager) InvokeActors(methodName string, request []byte) actorErr.ActorErr {
+	m.activeActors.Range(func(key, value interface{}) bool {
+		return func() bool {
+			defer func() {
+				if err := recover(); err != nil {
+					log.Printf("InvokeActors recover, methodName:%s, request:%s", methodName, string(request))
+				}
+			}()
+			out, err := m.InvokeMethod(key.(string), methodName, request)
+			if err != actorErr.Success {
+				log.Printf("InvokeActors, methodName:%s, request:%s, out:%s, err:%v", methodName, string(request), string(out), err)
+			}
+			return true
+		}()
+	})
+	return actorErr.Success
 }
 
 func getAbsctractMethodMap(rcvr interface{}) (map[string]*MethodType, error) {
