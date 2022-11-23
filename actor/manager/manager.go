@@ -37,6 +37,7 @@ type ActorManager interface {
 	InvokeReminder(actorID, reminderName string, params []byte) actorErr.ActorErr
 	InvokeTimer(actorID, timerName string, params []byte) actorErr.ActorErr
 	InvokeActors(methodName string, request []byte) actorErr.ActorErr
+	KillAllActors() actorErr.ActorErr
 }
 
 // DefaultActorManager is to manage one type of actor.
@@ -188,6 +189,20 @@ func (m *DefaultActorManager) InvokeActors(methodName string, request []byte) ac
 			return true
 		}()
 	})
+	return actorErr.Success
+}
+
+func (m *DefaultActorManager) KillAllActors() actorErr.ActorErr {
+	actorIds := []string{}
+	m.activeActors.Range(func(key, value interface{}) bool {
+		return func() bool {
+			actorIds = append(actorIds, key.(string))
+			return true
+		}()
+	})
+	for _, actorId := range actorIds {
+		m.DeactivateActor(actorId)
+	}
 	return actorErr.Success
 }
 

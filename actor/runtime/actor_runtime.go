@@ -15,6 +15,7 @@ package runtime
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 
 	"github.com/dapr/go-sdk/actor"
@@ -111,4 +112,13 @@ func (r *ActorRunTime) InvokeActors(actorType, methodName string, request []byte
 		return actorErr.ErrActorTypeNotFound
 	}
 	return mng.(manager.ActorManager).InvokeActors(methodName, request)
+}
+
+func (r *ActorRunTime) KillAllActors(actorTypeName string) actorErr.ActorErr {
+	fmt.Println("KillAllActors:", actorTypeName)
+	targetManager, ok := r.actorManagers.Load(actorTypeName)
+	if !ok {
+		return actorErr.ErrActorTypeNotFound
+	}
+	return targetManager.(manager.ActorManager).KillAllActors()
 }
