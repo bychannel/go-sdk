@@ -177,15 +177,17 @@ func (m *DefaultActorManager) InvokeTimer(actorID, timerName string, params []by
 func (m *DefaultActorManager) InvokeActors(methodName string, request []byte) actorErr.ActorErr {
 	m.activeActors.Range(func(key, value interface{}) bool {
 		return func() bool {
-			defer func() {
-				if err := recover(); err != nil {
-					log.Printf("InvokeActors recover, methodName:%s, request:%s", methodName, string(request))
+			go func() {
+				defer func() {
+					if err := recover(); err != nil {
+						log.Printf("InvokeActors recover, methodName:%s, request:%s", methodName, string(request))
+					}
+				}()
+				out, err := m.InvokeMethod(key.(string), methodName, request)
+				if err != actorErr.Success {
+					log.Printf("InvokeActors, methodName:%s, request:%s, out:%s, err:%v", methodName, string(request), string(out), err)
 				}
 			}()
-			out, err := m.InvokeMethod(key.(string), methodName, request)
-			if err != actorErr.Success {
-				log.Printf("InvokeActors, methodName:%s, request:%s, out:%s, err:%v", methodName, string(request), string(out), err)
-			}
 			return true
 		}()
 	})
@@ -193,7 +195,7 @@ func (m *DefaultActorManager) InvokeActors(methodName string, request []byte) ac
 }
 
 func (m *DefaultActorManager) KillAllActors() actorErr.ActorErr {
-	actorIds := []string{}
+	var actorIds []string
 	m.activeActors.Range(func(key, value interface{}) bool {
 		return func() bool {
 			actorIds = append(actorIds, key.(string))
@@ -201,7 +203,14 @@ func (m *DefaultActorManager) KillAllActors() actorErr.ActorErr {
 		}()
 	})
 	for _, actorId := range actorIds {
-		m.DeactivateActor(actorId)
+		go func() {
+			defer func() {
+				if err := recover(); err != nil {
+					log.Printf("KillAllActors recover, actorId:%s", actorId)
+				}
+			}()
+			m.DeactivateActor(actorId)
+		}()
 	}
 	return actorErr.Success
 }
