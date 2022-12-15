@@ -50,6 +50,7 @@ func (s *Server) AddServiceInvocationHandler(route string, fn common.ServiceInvo
 				Verb:        r.Method,
 				QueryString: r.URL.RawQuery,
 				ContentType: r.Header.Get("Content-type"),
+				Request:     r,
 			}
 
 			// check for post with no data
