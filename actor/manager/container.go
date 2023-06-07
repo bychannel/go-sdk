@@ -44,7 +44,8 @@ func NewDefaultActorContainer(actorID string, impl actor.Server, serializer code
 	daprClient, _ := dapr.NewClient()
 	// create state manager for this new actor
 	impl.SetStateManager(state.NewActorStateManager(impl.Type(), actorID, state.NewDaprStateAsyncProvider(daprClient)))
-	err := impl.Activate()
+	// move out for Activate param
+	/*err := impl.Activate()
 	if err != nil {
 		return nil, actorErr.ErrSaveStateFailed
 	}
@@ -52,7 +53,7 @@ func NewDefaultActorContainer(actorID string, impl actor.Server, serializer code
 	err = impl.SaveState()
 	if err != nil {
 		return nil, actorErr.ErrSaveStateFailed
-	}
+	}*/
 	methodType, err := getAbsctractMethodMap(impl)
 	if err != nil {
 		log.Printf("failed to get absctract method map from registered provider, err = %s", err)

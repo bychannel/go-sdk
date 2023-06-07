@@ -115,7 +115,7 @@ func (mr *MockServerMockRecorder) Type() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Type", reflect.TypeOf((*MockServer)(nil).Type))
 }
 
-func (m *MockServer) Activate() error {
+func (m *MockServer) Activate(invokeName string) error {
 	return nil
 }
 
