@@ -27,7 +27,7 @@ type ActorImpl struct {
 	actor.ServerImplBase
 }
 
-func (t *ActorImpl) Activate() error {
+func (t *ActorImpl) Activate(invokeName string) error {
 	return nil
 }
 

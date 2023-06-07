@@ -68,12 +68,21 @@ func (m *DefaultActorManager) RegisterActorImplFactory(f actor.Factory) {
 }
 
 // getAndCreateActorContainerIfNotExist will.
-func (m *DefaultActorManager) getAndCreateActorContainerIfNotExist(actorID string) (ActorContainer, actorErr.ActorErr) {
+func (m *DefaultActorManager) getAndCreateActorContainerIfNotExist(actorID, invokeName string) (ActorContainer, actorErr.ActorErr) {
 	val, ok := m.activeActors.Load(actorID)
 	if !ok {
 		newContainer, aerr := NewDefaultActorContainer(actorID, m.factory(), m.serializer)
 		if aerr != actorErr.Success {
 			return nil, aerr
+		}
+		err := newContainer.GetActor().Activate(invokeName)
+		if err != nil {
+			return nil, actorErr.ErrSaveStateFailed
+		}
+		// save state of this actor
+		err = newContainer.GetActor().SaveState()
+		if err != nil {
+			return nil, actorErr.ErrSaveStateFailed
 		}
 		m.activeActors.Store(actorID, newContainer)
 		val, _ = m.activeActors.Load(actorID)
@@ -87,7 +96,7 @@ func (m *DefaultActorManager) InvokeMethod(actorID, methodName string, request [
 		return nil, actorErr.ErrActorFactoryNotSet
 	}
 
-	actorContainer, aerr := m.getAndCreateActorContainerIfNotExist(actorID)
+	actorContainer, aerr := m.getAndCreateActorContainerIfNotExist(actorID, methodName)
 	if aerr != actorErr.Success {
 		return nil, aerr
 	}
@@ -143,7 +152,7 @@ func (m *DefaultActorManager) InvokeReminder(actorID, reminderName string, param
 		log.Printf("failed to unmarshal reminder param, err: %v ", err)
 		return actorErr.ErrRemindersParamsInvalid
 	}
-	actorContainer, aerr := m.getAndCreateActorContainerIfNotExist(actorID)
+	actorContainer, aerr := m.getAndCreateActorContainerIfNotExist(actorID, reminderName)
 	if aerr != actorErr.Success {
 		return aerr
 	}
@@ -166,7 +175,7 @@ func (m *DefaultActorManager) InvokeTimer(actorID, timerName string, params []by
 		log.Printf("failed to unmarshal reminder param, err: %v ", err)
 		return actorErr.ErrTimerParamsInvalid
 	}
-	actorContainer, aerr := m.getAndCreateActorContainerIfNotExist(actorID)
+	actorContainer, aerr := m.getAndCreateActorContainerIfNotExist(actorID, timerName)
 	if aerr != actorErr.Success {
 		return aerr
 	}

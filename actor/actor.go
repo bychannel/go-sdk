@@ -44,7 +44,7 @@ type Server interface {
 	// Save state is called at two places: 1. On invocation of this actor instance. 2. When new actor starts.
 	SaveState() error
 	// Activate called when actor created by actor manager
-	Activate() error
+	Activate(invokeName string) error
 	// Deactivate called before actor removed by actor manager
 	Deactivate() error
 }
