@@ -212,7 +212,7 @@ func (m *DefaultActorManager) KillAllActors() actorErr.ActorErr {
 		}()
 	})
 	for _, actorId := range actorIds {
-		go func() {
+		func() {
 			defer func() {
 				if err := recover(); err != nil {
 					log.Printf("KillAllActors recover, actorId:%s", actorId)
