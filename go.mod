@@ -3,7 +3,7 @@ module github.com/dapr/go-sdk
 go 1.17
 
 require (
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.3
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.4
 	google.golang.org/grpc v1.47.0
